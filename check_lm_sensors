@@ -43,6 +43,7 @@ use vars qw(
   $plugin
   $hddtemp_bin
   $sensors_bin
+  $physical
   $drives
   $help
   $list
@@ -387,6 +388,8 @@ sub parse_sensors {
           or
           $plugin->nagios_exit( UNKNOWN, "Cannot execute $command: $OS_ERROR" );
 
+        $physical = '';
+
         while (<$output>) {
             chomp;
 
@@ -401,6 +404,17 @@ sub parse_sensors {
 
                 if ( $rename{$name} ) {
                     $name = $rename{$name};
+                }
+
+                if ($name =~ /^Physical id ([0-9]+)/) {
+                    $physical = $name;
+                }
+
+                if ($physical) {
+                    if ( $verbosity ) {
+                        print "Using physical parent $physical";
+                    }
+                    $name = "$physical/$name";
                 }
 
                 $sensor_values{$name} = $value;
